@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useFormik } from 'formik'
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import * as Yup from 'yup'
 
 export default function Register() {
 
@@ -9,14 +10,25 @@ export default function Register() {
 
  async function handleRegister(registerData) {
     console.log('register', registerData)
+    try { 
     let response = await axios.post('https://ecommerce.routemisr.com/api/v1/auth/signup', registerData)
     console.log(response)
     if (response.data.message == 'success'){
-      navigate('login')
+      navigate('/login')
     }
+  }catch(err) { 
+    console.log(err.response?.data) ;
+    alert(error.response?.data?.message || 'this email is used before')
+  }
   }
 
-  
+  let validationSchema = Yup.object({
+    name : Yup.string().required("name is required").min(2 , " the minimum is 2 charactes").max(20 , " the maximum is 20 characters"),
+    email : Yup.string().required(" The Email is required").email(" the Email format is invalid"), 
+    password : Yup.string().required("the password is required").matches(/^[A-Z][a-z0-9]{5,}$/, " password must start with a capital letter and be at least 6 characters"),
+    rePassword : Yup.string().required("passwords must match").oneOf([Yup.ref('password')], "passwords must match"),
+    phone : Yup.string().required("the Phone number is required").matches(/^01[1250][0-9]{8}$/ , " phone number must start with 01 and must be egyptian")
+  })
 
   const formik = useFormik({
     initialValues : {
@@ -25,7 +37,9 @@ export default function Register() {
       password : '',
       rePassword : '',
       phone : ''
-    }, onSubmit : handleRegister 
+    },
+    validationSchema : validationSchema , 
+    onSubmit : handleRegister 
   })
   return (
     <div>
@@ -48,32 +62,57 @@ export default function Register() {
               <div className="row gy-3 overflow-hidden">
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input   onChange={formik.handleChange} onBlur={formik.handleBlur} type="text" className="form-control border-0 border-bottom rounded-0" name="name" value={formik.values.name} id="name" placeholder="First Name" required />
+                    <input   onChange={formik.handleChange} onBlur={formik.handleBlur} type="text" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.name && formik.errors.name ? 'is-invalid' : ''}`} name="name" value={formik.values.name} id="name" placeholder="First Name" required />
                     <label htmlFor="name" className="form-label">Name</label>
+                    {
+                      formik.touched.name && formik.errors.name ? (
+                        <div className="text-danger">{formik.errors.name}</div>
+                      ) : null
+                    }
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input  onChange={formik.handleChange} onBlur={formik.handleBlur} type="email" className="form-control border-0 border-bottom rounded-0" name="email" value={formik.values.email} id="email" placeholder="Email" required />
+                    <input  onChange={formik.handleChange} onBlur={formik.handleBlur} type="email" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.email && formik.errors.email ? 'is-invalid' : '' }`} name="email" value={formik.values.email} id="email" placeholder="Email" required />
                     <label htmlFor="email" className="form-label">Email</label>
+                    {
+                      formik.touched.email && formik.errors.email ? (
+                        <div className="text-danger">{formik.errors.email}</div>
+                      ) : null 
+                    }
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input  onChange={formik.handleChange} onBlur={formik.handleBlur} type="password" className="form-control border-0 border-bottom rounded-0" name="password" value={formik.values.password} id="password" placeholder="Password" required />
+                    <input  onChange={formik.handleChange} onBlur={formik.handleBlur} type="password" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.password && formik.errors.password ? 'is-invalid' : ''}`} name="password" value={formik.values.password} id="password" placeholder="Password" required />
                     <label htmlFor="password" className="form-label">Password</label>
+                    {
+                      formik.touched.password && formik.errors.password ? ( 
+                        <div className="text-danger">{formik.errors.password}</div>
+                      ) : null
+                    }
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input onChange={formik.handleChange} onBlur={formik.handleBlur}  type="password" className="form-control border-0 border-bottom rounded-0" name="rePassword" value={formik.values.rePassword} id="rePassword" placeholder="Password" required />
+                    <input onChange={formik.handleChange} onBlur={formik.handleBlur}  type="password" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.rePassword && formik.errors.rePassword ? 'is-invalid' : ''}`} name="rePassword" value={formik.values.rePassword} id="rePassword" placeholder="Password" required />
                     <label htmlFor="rePassword" className="form-label">Confirm Password</label>
+                    {
+                      formik.touched.rePassword && formik.errors.rePassword ? (
+                        <div className="text-danger">{formik.errors.rePassword}</div>
+                      ) : null 
+                    }
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input onChange={formik.handleChange} onBlur={formik.handleBlur}  type="tel" className="form-control border-0 border-bottom rounded-0" name="phone" value={formik.values.phone} id="phone" placeholder='+2015892081303' required />
+                    <input onChange={formik.handleChange} onBlur={formik.handleBlur}  type="tel" className={`form-control border-0 border-bottom rounded-0" name="phone ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`} value={formik.values.phone} id="phone" placeholder='+2015892081303' required />
                     <label htmlFor="phone" className="form-label">Phone Number</label>
+                    {
+                      formik.touched.phone && formik.errors.phone ? (
+                        <div className="text-danger">{formik.errors.phone}</div>
+                      ) : null 
+                    }
                   </div>
                 </div>
                 {/* <div className="col-12">

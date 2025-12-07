@@ -3,6 +3,7 @@ import { useFormik } from 'formik'
 import React from 'react'
 import { UNSAFE_createClientRoutesWithHMRRevalidationOptOut } from 'react-router-dom'
 import { Link, useNavigate } from 'react-router-dom'
+import * as Yup from 'yup'
 
 export default function Login() {
 
@@ -10,19 +11,33 @@ export default function Login() {
 
   async function handleLogIn(loginData) {
     console.log(loginData)
-    let response = await axios.post('https://ecommerce.routemisr.com/api/v1/auth/signin')
-    console.log(response)
-    if (response.data.message == 'sucess' ) { 
-      navigate('')
+    try {
+      let response = await axios.post('https://ecommerce.routemisr.com/api/v1/auth/signin', loginData)
+      console.log(response)
+      if (response.data.message == 'success' ) { 
+        navigate('/')
+      }
+    } catch (error) {
+      console.log('Login Error:', error.response?.data)
+      alert(error.response?.data?.message || 'Invalid email or password')
     }
   }
+
+
+let validationSchema = Yup.object({
+  email : Yup.string().required(" the email is required ").email("email format is invalid"),
+  password : Yup.string().required("password is required")
+  })
+
 
   let formik = useFormik(
     { 
     initialValues : { 
       email : '' , 
       password : ''
-    },onSubmit: handleLogIn
+    },
+    validationSchema: validationSchema ,
+    onSubmit: handleLogIn
   }
   ) 
   return (
@@ -45,14 +60,24 @@ export default function Login() {
               <div className="row gy-3 overflow-hidden">
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input type="email" className="form-control border-0 border-bottom rounded-0" name="email" onChange={formik.handleChange} onBlur={formik.handleBlur} id="email" placeholder="name@example.com" required />
+                    <input type="email" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`} name="email" onChange={formik.handleChange} onBlur={formik.handleBlur} id="email" placeholder="name@example.com" required />
                     <label htmlFor="email" className="form-label">Email</label>
+                    {
+                      formik.touched.email && formik.errors.email ? (
+                        <div className="text-danger">{formik.errors.email}</div>
+                      ) : null
+                    }
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input type="password" className="form-control border-0 border-bottom rounded-0" name="password" onChange={formik.handleChange} onBlur={formik.handleBlur} id="password" defaultValue placeholder="Password" required />
+                    <input type="password" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.password && formik.errors.password ? 'is-invalid': '' }`} name="password" value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur} id="password" placeholder="Password" required />
                     <label htmlFor="password" className="form-label">Password</label>
+                    {
+                      formik.touched.password && formik.errors.password ? (
+                        <div className="text-danger">{formik.errors.password}</div>
+                      ) : null
+                    }
                   </div>
                 </div>
                 <div className="col-12">

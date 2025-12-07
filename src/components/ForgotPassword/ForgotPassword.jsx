@@ -1,7 +1,37 @@
+import { useFormik } from 'formik'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import * as Yup from 'yup' 
+import axios from 'axios'
+
 
 export default function ForgotPassword() {
+
+let navigate = useNavigate() ;
+
+async function handleForgotPassword(forgotPasswordData) {
+  console.log(forgotPasswordData)
+  let response = await axios.post('https://ecommerce.routemisr.com/api/v1/auth/forgotPasswords' , forgotPasswordData)
+  console.log(response)
+  if ( response.data.message = "success"){
+    navigate('/login')
+  }
+}
+
+
+
+let validationSchema = Yup.object({
+  email : Yup.string().required("The Email is required").email("email format is invalid")
+})
+
+let formik = useFormik({
+  initialValues : {
+    email : ''
+  }, validationSchema : validationSchema  
+  ,onSubmit: handleForgotPassword 
+})
+
+
   return (
     <div>
 <section className="py-3 py-md-5 py-xl-8">
@@ -18,12 +48,17 @@ export default function ForgotPassword() {
       <div className="col-12 col-lg-10 col-xl-8">
         <div className="row gy-5 justify-content-center">
           <div className="col-12 col-lg-5">
-            <form action="#!">
+            <form action="post" onSubmit={formik.handleSubmit}>
               <div className="row gy-3 overflow-hidden">
                 <div className="col-12">
                   <div className="form-floating mb-3">
-                    <input type="email" className="form-control border-0 border-bottom rounded-0" name="email" id="email" placeholder="name@example.com" required />
+                    <input type="email" className={`form-control border-0 border-bottom rounded-0 ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`} name="email" onChange={formik.handleChange} onBlur={formik.handleBlur} id="email" placeholder="name@example.com" required />
                     <label htmlFor="email" className="form-label">Email</label>
+                    {
+                      formik.touched.email && formik.errors.email ? (
+                        <div className="text-danger">{formik.errors.email}</div>
+                      ) : null
+                    }
                   </div>
                 </div>
                 <div className="col-12">
